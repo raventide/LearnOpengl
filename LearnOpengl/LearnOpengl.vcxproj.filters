@@ -21,6 +21,9 @@
     <ClInclude Include="GLApp.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="GLShader.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -30,6 +33,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="GLApp.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="GLShader.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

@@ -3,12 +3,13 @@
 #include <cstdlib>
 #include <fstream>
 #include <sstream>
+#include "GLShader.h"
 
 GLApp::GLApp()
 {
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	GLFWwindow* window = glfwCreateWindow(800, 600, "OpenGL Project Template", NULL, NULL);
@@ -73,6 +74,11 @@ GLApp::GLApp()
 	//glUseProgram(shaderProgram);
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
+
+	GLShader shader;
+	shader.readFrag("shaders/fragment.frag");
+	shader.readVert("shaders/vertex.vert");
+	shader.compile();
 
 	// prepare rendering
 	float vertices[] = {
@@ -142,16 +148,18 @@ GLApp::GLApp()
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		glUseProgram(shaderProgram);
+		shader.use();
+		//glUseProgram(shaderProgram);
 
 		//int uniform_loc = glGetUniformLocation(shaderProgram, "inputColor");
 		//glUniform4f(uniform_loc, 0.5f, 0.1f, 0.2f, 1.0f);
 		glBindVertexArray(VAO);
+		glDrawArrays(GL_TRIANGLES, 0, 4);
 		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		//glDrawElements(GL_TRIANGLES, 4, GL_UNSIGNED_INT, 0);
 		//glBindVertexArray(0);
 		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		glDrawArrays(GL_TRIANGLES, 0, 4);
+
 		//glBindVertexArray(VAO2);
 		//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		//glDrawArrays(GL_TRIANGLES, 0, 3);
