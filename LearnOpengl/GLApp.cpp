@@ -90,6 +90,13 @@ GLApp::GLApp()
 		0,1,2,
 		0,1,3
 	};
+	float color_data[] =
+	{
+		1.0f,0.0f,0.0f,
+		0.0f,1.0f,0.0f,
+		0.0f,0.0f,1.0f,
+		0.1f,0.5f,0.9f
+	};
 
 	unsigned int VAO;
 	glGenVertexArrays(1, &VAO);
@@ -100,25 +107,32 @@ GLApp::GLApp()
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-	GLuint EBO;
-	glGenBuffers(1, &EBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+	//GLuint EBO;
+	//glGenBuffers(1, &EBO);
+	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
+
+	//GLuint VBO_color;
+	//glGenBuffers(1, &VBO_color);
+	//glBindBuffer(GL_ARRAY_BUFFER, VBO_color);
+	//glBufferData(GL_ARRAY_BUFFER, sizeof(color_data), color_data, GL_STATIC_DRAW);
+	//glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	//glEnableVertexAttribArray(1);
 
 	//unsigned int VAO2;
 	//glGenVertexArrays(1, &VAO2);
 	//glBindVertexArray(VAO2);
 
-	//unsigned int VBO2;
-	//glGenBuffers(1, &VBO2);
-	//glBindBuffer(GL_ARRAY_BUFFER, VBO2);
-	//glBufferData(GL_ARRAY_BUFFER, sizeof(vertices2), vertices2, GL_STATIC_DRAW);
+	unsigned int VBO2;
+	glGenBuffers(1, &VBO2);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO2);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(color_data), color_data, GL_STATIC_DRAW);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(1);
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -130,14 +144,14 @@ GLApp::GLApp()
 
 		glUseProgram(shaderProgram);
 
-		int uniform_loc = glGetUniformLocation(shaderProgram, "inputColor");
-		glUniform4f(uniform_loc, 0.5f, 0.1f, 0.2f, 1.0f);
+		//int uniform_loc = glGetUniformLocation(shaderProgram, "inputColor");
+		//glUniform4f(uniform_loc, 0.5f, 0.1f, 0.2f, 1.0f);
 		glBindVertexArray(VAO);
 		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-		glBindVertexArray(0);
+		//glDrawElements(GL_TRIANGLES, 4, GL_UNSIGNED_INT, 0);
+		//glBindVertexArray(0);
 		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		//glDrawArrays(GL_TRIANGLES, 0, 3);
+		glDrawArrays(GL_TRIANGLES, 0, 4);
 		//glBindVertexArray(VAO2);
 		//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		//glDrawArrays(GL_TRIANGLES, 0, 3);
@@ -176,4 +190,9 @@ std::string GLApp::loadFileToStr(std::string file_name)
 		return shaderCode;
 	}
 	return "0";
+}
+
+void GLApp::ColorTriangle()
+{
+
 }
