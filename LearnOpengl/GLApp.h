@@ -17,5 +17,7 @@ public:
 
 private:
 	void ColorTriangle();
-};
+	void Texture();
 
+	GLFWwindow* m_window;
+};
