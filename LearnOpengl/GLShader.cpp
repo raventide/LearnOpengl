@@ -95,3 +95,8 @@ void GLShader::use()
 {
 	glUseProgram(m_id);
 }
+
+GLuint GLShader::id()
+{
+	return m_id;
+}

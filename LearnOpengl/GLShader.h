@@ -12,6 +12,7 @@ public:
 	void compile();
 	void checkCompileErrors(GLuint shader, std::string type);
 	void use();
+	GLuint id();
 
 private:
 	GLuint m_id;

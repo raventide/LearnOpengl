@@ -5,6 +5,10 @@
 #include <sstream>
 #include "GLShader.h"
 #include <stb_image.h>
+#include <glm/glm.hpp>
+#include <glm/gtx/transform.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 GLApp::GLApp()
 {
@@ -267,8 +271,17 @@ void GLApp::Texture()
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 		glBindTexture(GL_TEXTURE_2D, texture);
+
+		glm::mat4 transform;
+		//transform = glm::translate(transform, glm::vec3(0.5f, -0.5f, 0.0f));
+		transform = glm::scale(transform, glm::vec3(0.5, 0.5, 0.5));
+		transform = glm::rotate(transform, (float)glfwGetTime() * 2, glm::vec3(0.0f, 1.0f, 0.0f));
 		
 		shader.use();
+
+		GLuint transformLoc = glGetUniformLocation(shader.id(), "transform");
+		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+
 		glBindVertexArray(VAO);
 
 		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
