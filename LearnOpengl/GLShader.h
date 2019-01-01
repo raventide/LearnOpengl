@@ -1,6 +1,7 @@
 #pragma once
 #include <GL/glew.h>
 #include <string>
+#include <glm/glm.hpp>
 
 class GLShader
 {
@@ -13,6 +14,8 @@ public:
 	void checkCompileErrors(GLuint shader, std::string type);
 	void use();
 	GLuint id();
+
+	void setMat4(const std::string& name, glm::mat4 value);
 
 private:
 	GLuint m_id;

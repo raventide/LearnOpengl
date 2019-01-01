@@ -35,7 +35,7 @@ GLApp::GLApp()
 	}
 	glfwSetFramebufferSizeCallback(m_window, framebuffer_size_callback);
 
-	Texture();
+	Transform();
 
 
 	glfwTerminate();
@@ -51,10 +51,28 @@ void GLApp::framebuffer_size_callback(GLFWwindow* window, int width, int height)
 	glViewport(0, 0, width, height);
 }
 
-void GLApp::processInput(GLFWwindow *window)
+void GLApp::processInput(GLFWwindow *window,GLApp* app)
 {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
+
+	float camera_speed = 2.5 * app->m_deltaTime; 
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+	{ 
+		app->m_cameraPos += app->m_cameraFront * camera_speed;
+	}
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+	{
+		app->m_cameraPos -= camera_speed * app->m_cameraFront;
+	}
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+	{
+		app->m_cameraPos -= glm::normalize(glm::cross(app->m_cameraFront, app->m_cameraUp)) * camera_speed;
+	}
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+	{
+		app->m_cameraPos += glm::normalize(glm::cross(app->m_cameraFront, app->m_cameraUp)) * camera_speed;
+	}
 }
 
 std::string GLApp::loadFileToStr(std::string file_name)
@@ -140,7 +158,7 @@ void GLApp::ColorTriangle()
 
 	while (!glfwWindowShouldClose(m_window))
 	{
-		processInput(m_window);
+		processInput(m_window,this);
 
 		// rendering here
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -265,7 +283,7 @@ void GLApp::Texture()
 
 	while (!glfwWindowShouldClose(m_window))
 	{
-		processInput(m_window);
+		processInput(m_window,this);
 
 		// rendering here
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -291,4 +309,313 @@ void GLApp::Texture()
 		glfwSwapBuffers(m_window);
 		glfwPollEvents();
 	}
+}
+
+void GLApp::Cube()
+{
+	GLfloat cube_verts[] = {
+		-0.5f,0.5f,0.0f,
+		0.5f,0.5f,0.0f,
+		0.5f,-0.5f,0.0f,
+		-0.5f,-0.5f,0.0f,
+		-0.5f,0.5f,-0.5f,
+		0.5f,0.5f,-0.5f,
+		0.5f,-0.5f,-0.5f,
+		-0.5f,-0.5f,-0.5f,
+	};
+	GLuint indices[] = {
+		0,1,2,
+		1,2,3,
+		4,5,6,
+		5,6,7,
+		0,4,5,
+		0,5,1,
+		2,6,7,
+		2,7,3,
+		6,4,0,
+		6,0,2,
+		3,1,5,
+		3,5,7,
+	};
+	GLfloat tex_coords[] = {
+		0.0f,0.0f,
+		0.0f,1.0f,
+		1.0f,1.0f,
+		1.0f,0.0f,
+		0.0f,0.0f,
+		0.0f,1.0f,
+		1.0f,1.0f,
+		1.0f,0.0f
+	};
+	GLfloat colors[] =
+	{
+		0.8f,0.0f,0.0f,
+		0.0f,0.8f,0.0f,
+		0.0f,0.0f,0.8f,
+		0.7f,0.2f,0.5f,
+		0.8f,0.0f,0.0f,
+		0.0f,0.8f,0.0f,
+		0.0f,0.0f,0.8f,
+		0.7f,0.2f,0.5f,
+	};
+
+	GLuint VAO;
+	// 0:vertices, 1:texture coordinates ,2:colors
+	GLuint VBOs[3];
+	GLuint EBO;
+
+	GLShader shader;
+	shader.readFrag("shaders/cube/fragment.frag");
+	shader.readVert("shaders/cube/vertex.vert");
+	shader.compile();
+
+	glGenVertexArrays(1, &VAO);
+	glBindVertexArray(VAO);
+
+	glGenBuffers(1, &VBOs[0]);
+	glBindBuffer(GL_ARRAY_BUFFER, VBOs[0]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(cube_verts), cube_verts, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+	glGenBuffers(1, &VBOs[1]);
+	glBindBuffer(GL_ARRAY_BUFFER, VBOs[1]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(tex_coords), tex_coords, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0,(void*)0);
+
+	glGenBuffers(2, &VBOs[2]);
+	glBindBuffer(GL_ARRAY_BUFFER, VBOs[2]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+	glGenBuffers(1, &EBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+	// load and create a texture
+	GLuint texture;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	int width, height, nrChannels;
+	stbi_set_flip_vertically_on_load(true);
+	unsigned char* data = stbi_load("res/wall.jpg", &width, &height, &nrChannels, 0);
+	if (data)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else
+	{
+		std::cout << "[ERROR] Failed to load texture file" << std::endl;
+	}
+	stbi_image_free(data);
+
+	while (!glfwWindowShouldClose(m_window))
+	{
+		processInput(m_window,this);
+
+		// rendering here
+		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+		glBindTexture(GL_TEXTURE_2D, texture);
+
+		shader.use();
+		glBindVertexArray(VAO);
+		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+
+		glfwSwapBuffers(m_window);
+		glfwPollEvents();
+	}
+	glDeleteBuffers(3, &VBOs[0]);
+	glDeleteVertexArrays(1, &VAO);
+	glDeleteBuffers(1, &EBO);
+}
+
+void GLApp::Transform()
+{
+	glm::vec3 m_cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+	glm::vec3 m_cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+	glm::vec3 m_cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+
+	GLfloat cube_verts[] = {
+		-0.5f,0.5f,0.0f,
+		0.5f,0.5f,0.0f,
+		0.5f,-0.5f,0.0f,
+		//-0.5f,-0.5f,0.0f,
+		//-0.5f,0.5f,-0.5f,
+		0.5f,0.5f,-0.5f,
+		0.5f,-0.5f,-0.5f,
+		-0.5f,-0.5f,-0.5f,
+	};
+	GLfloat colors[] =
+	{
+		0.8f,0.0f,0.0f,
+		0.0f,0.8f,0.0f,
+		0.0f,0.0f,0.8f,
+		//0.7f,0.2f,0.5f,
+		//0.8f,0.0f,0.0f,
+		0.0f,0.8f,0.0f,
+		0.0f,0.0f,0.8f,
+		0.7f,0.2f,0.5f,
+	};
+	GLfloat tex_coords[] = {
+		0.0f,1.0f,
+		1.0f,1.0f,
+		1.0f,0.0f,
+		1.0f,1.0f,
+		1.0f,0.0f,
+		0.0f,0.0f
+	};
+
+	// world space positions of our cubes
+	glm::vec3 cubePositions[] = {
+		glm::vec3(0.0f,  0.0f,  0.0f),
+		glm::vec3(2.0f,  5.0f, -15.0f),
+		glm::vec3(-1.5f, -2.2f, -2.5f),
+		glm::vec3(-3.8f, -2.0f, -12.3f),
+		glm::vec3(2.4f, -0.4f, -3.5f),
+		glm::vec3(-1.7f,  3.0f, -7.5f),
+		glm::vec3(1.3f, -2.0f, -2.5f),
+		glm::vec3(1.5f,  2.0f, -2.5f),
+		glm::vec3(1.5f,  0.2f, -1.5f),
+		glm::vec3(-1.3f,  1.0f, -1.5f)
+	};
+
+	glEnable(GL_DEPTH_TEST);
+	GLShader shader;
+	shader.readFrag("shaders/transform/fragment.frag");
+	shader.readVert("shaders/transform/vertex.vert");
+	shader.compile();
+
+	GLuint VAO;
+	GLuint VBO_verts, VBO_colors, VBO_texCoords;
+
+	glGenVertexArrays(1, &VAO);
+	glBindVertexArray(VAO);
+
+	glGenBuffers(1, &VBO_verts);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO_verts);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(cube_verts), cube_verts, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+	glGenBuffers(1, &VBO_colors);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO_colors);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+	glGenBuffers(1, &VBO_texCoords);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO_texCoords);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(tex_coords), tex_coords, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+	// load and create a texture
+	GLuint texture;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	int width, height, nrChannels;
+	stbi_set_flip_vertically_on_load(true);
+	unsigned char* data = stbi_load("res/wall.jpg", &width, &height, &nrChannels, 0);
+	if (data)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else
+	{
+		std::cout << "[ERROR] Failed to load texture file" << std::endl;
+	}
+	stbi_image_free(data);
+
+	while (!glfwWindowShouldClose(m_window))
+	{
+		float currentFrame = glfwGetTime();
+		m_deltaTime = currentFrame - m_lastFrame;
+		m_lastFrame = currentFrame;
+
+		processInput(m_window,this);
+
+		// rendering here
+		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glBindTexture(GL_TEXTURE_2D, texture);
+
+		glm::mat4 trans;
+		trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 1.0f, 0.0f));
+		//unsigned int transformLoc = glGetUniformLocation(shader.id(), "transform");
+		//glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
+
+		glm::mat4 projection = glm::mat4(1.0f);
+		projection = glm::perspective(glm::radians(45.0f), (float)800 / (float)800, 0.1f, 100.0f);
+		//glm::mat4 view = glm::mat4(1.0f);
+		//view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+		//		shader.setMat4("view", view);
+		shader.setMat4("projection", projection);
+		float camera_speed = 2.50f * m_deltaTime;
+		if (glfwGetKey(m_window, GLFW_KEY_W) == GLFW_PRESS)
+		{
+			m_cameraPos += m_cameraFront * camera_speed;
+		}
+		if (glfwGetKey(m_window, GLFW_KEY_S) == GLFW_PRESS)
+		{
+			m_cameraPos -= camera_speed * m_cameraFront;
+		}
+		if (glfwGetKey(m_window, GLFW_KEY_A) == GLFW_PRESS)
+		{
+			m_cameraPos -= glm::normalize(glm::cross(m_cameraFront, m_cameraUp)) * camera_speed;
+		}
+		if (glfwGetKey(m_window, GLFW_KEY_D) == GLFW_PRESS)
+		{
+			m_cameraPos += glm::normalize(glm::cross(m_cameraFront, m_cameraUp)) * camera_speed;
+		}
+		glm::mat4 view = glm::lookAt(m_cameraPos, m_cameraPos + m_cameraFront, m_cameraUp);
+		shader.setMat4("view", view);
+		//std::cout << *glm::value_ptr(view) << std::endl;
+		shader.use();
+		glBindVertexArray(VAO);
+		for (unsigned int i = 0; i < 10; i++)
+		{
+			// calculate the model matrix for each object and pass it to shader before drawing
+			glm::mat4 model = glm::mat4(1.0f);
+			model = glm::translate(model, cubePositions[i]);
+			float angle = 20.0f * i;
+			model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+			shader.setMat4("model", model);
+
+			if (i % 3 == 0)
+			{
+				shader.setMat4("transform", trans);
+			}
+			else
+			{
+				shader.setMat4("transform", glm::mat4());
+			}
+
+			glDrawArrays(GL_TRIANGLES, 0, 6);
+		}
+		//glDrawArrays(GL_TRIANGLES, 0, 6);
+
+		glfwSwapBuffers(m_window);
+		glfwPollEvents();
+	}
+	glDeleteVertexArrays(1, &VAO);
+	glDeleteBuffers(1, &VBO_verts);
+	glDeleteBuffers(1, &VBO_colors);
+}
+
+void GLApp::setCameraPos(glm::vec3 pos)
+{
+	m_cameraPos = pos;
 }

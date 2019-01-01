@@ -2,6 +2,7 @@
 #include <sstream>
 #include <fstream>
 #include <iostream>
+#include <glm/gtc/type_ptr.hpp>
 
 GLShader::GLShader()
 {
@@ -99,4 +100,10 @@ void GLShader::use()
 GLuint GLShader::id()
 {
 	return m_id;
+}
+
+void GLShader::setMat4(const std::string& name, glm::mat4 value)
+{
+	unsigned int transformLoc = glGetUniformLocation(this->id(), name.c_str());
+	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(value));
 }
