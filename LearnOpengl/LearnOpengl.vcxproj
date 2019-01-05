@@ -163,6 +163,7 @@
     <ClInclude Include="GLApp.h" />
     <ClInclude Include="GLShader.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="CommonData.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GLApp.cpp" />
@@ -178,6 +179,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\fragment.frag" />
+    <None Include="shaders\light\light.frag" />
+    <None Include="shaders\light\light.vert" />
+    <None Include="shaders\light\object.frag" />
+    <None Include="shaders\light\object.vert" />
     <None Include="shaders\vertex.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

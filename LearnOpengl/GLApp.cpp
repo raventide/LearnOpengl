@@ -9,6 +9,7 @@
 #include <glm/gtx/transform.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include "CommonData.h"
 
 GLApp::GLApp()
 {
@@ -35,8 +36,8 @@ GLApp::GLApp()
 	}
 	glfwSetFramebufferSizeCallback(m_window, framebuffer_size_callback);
 
-	Transform();
-
+	Light();
+	//Transform();
 
 	glfwTerminate();
 }
@@ -618,4 +619,94 @@ void GLApp::Transform()
 void GLApp::setCameraPos(glm::vec3 pos)
 {
 	m_cameraPos = pos;
+}
+
+void GLApp::Light()
+{
+	glm::vec3 m_cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+	glm::vec3 m_cameraFront = glm::vec3(-0.50f, -0.50f, -1.0f);
+	glm::vec3 m_cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+
+	glEnable(GL_DEPTH_TEST);
+
+	GLShader lightingShader;
+	lightingShader.readFrag("shaders/light/object.frag");
+	lightingShader.readVert("shaders/light/object.vert");
+	lightingShader.compile();
+	GLShader lampShader;
+	lampShader.readFrag("shaders/light/light.frag");
+	lampShader.readVert("shaders/light/light.vert");
+	lampShader.compile();
+
+	float cube_vertices[108];
+	getCubeVertices(cube_vertices);
+
+	GLuint cube_vao, cube_vbo;
+	glGenVertexArrays(1, &cube_vao);
+	glGenBuffers(1, &cube_vbo);
+	
+	glBindBuffer(GL_ARRAY_BUFFER, cube_vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(cube_vertices), cube_vertices, GL_STATIC_DRAW);
+
+	glBindVertexArray(cube_vao);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
+	GLuint light_vao;
+	glGenVertexArrays(1, &light_vao);
+	glBindVertexArray(light_vao);
+
+	glBindBuffer(GL_ARRAY_BUFFER, cube_vbo);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
+	glm::vec3 cam(m_cameraPos.x + 2.0f, m_cameraPos.y + 2.0f, m_cameraPos.z + 2.0f);
+	m_cameraPos = cam;
+	glm::mat4 view = glm::lookAt(m_cameraPos, m_cameraPos + m_cameraFront, m_cameraUp);
+
+	while (!glfwWindowShouldClose(m_window))
+	{
+		processInput(m_window, this);
+
+		glClearColor(0.1f, 0.4f, 0.1f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		lightingShader.use();
+		lightingShader.setVec3("objectColor", 0.50f, 0.5f, 0.31f);
+		lightingShader.setVec3("lightColor", 1.0f, 0.0f, 1.0f);
+
+		glm::mat4 projection = glm::mat4(1.0f);
+		projection = glm::perspective(glm::radians(45.0f), (float)800 / (float)800, 0.1f, 100.0f);
+		lightingShader.setMat4("projection", projection);
+
+		lightingShader.setMat4("view", view);
+		glm::mat4 model = glm::mat4(1.0f);
+		//model = glm::rotate(45.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+		lightingShader.setMat4("model", model);
+
+		glBindVertexArray(cube_vao);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+
+		lampShader.use();
+		lampShader.setMat4("projection", projection);
+		lampShader.setMat4("view", view);
+		model = glm::mat4(1.0f);
+		glm::vec3 light_pos(1.0f, 1.0f, -1.0f);
+		model = glm::translate(model, light_pos);
+		model = glm::scale(model, glm::vec3(0.2f));
+		lampShader.setMat4("model", model);
+
+		glBindVertexArray(light_vao);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+
+		glfwSwapBuffers(m_window);
+		glfwPollEvents();
+	}
+
+	glDeleteVertexArrays(1, &cube_vao);
+	glDeleteVertexArrays(1, &light_vao);
+	glDeleteBuffers(1, &cube_vbo);
+
 }

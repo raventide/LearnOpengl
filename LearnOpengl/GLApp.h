@@ -23,6 +23,7 @@ private:
 	void Texture();
 	void Cube();
 	void Transform();
+	void Light();
 
 	GLFWwindow* m_window;
 	glm::vec3 m_cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);

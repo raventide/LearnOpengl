@@ -16,6 +16,11 @@ public:
 	GLuint id();
 
 	void setMat4(const std::string& name, glm::mat4 value);
+	void setVec3(const std::string& name, glm::vec3 value);
+	void setVec3(const std::string& name,
+		const GLfloat& x,
+		const GLfloat& y,
+		const GLfloat& z);
 
 private:
 	GLuint m_id;

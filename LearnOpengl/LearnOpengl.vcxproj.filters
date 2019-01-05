@@ -24,6 +24,9 @@
     <ClInclude Include="GLShader.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="CommonData.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -45,5 +48,9 @@
   <ItemGroup>
     <None Include="shaders\fragment.frag" />
     <None Include="shaders\vertex.vert" />
+    <None Include="shaders\light\object.vert" />
+    <None Include="shaders\light\object.frag" />
+    <None Include="shaders\light\light.vert" />
+    <None Include="shaders\light\light.frag" />
   </ItemGroup>
 </Project>
