@@ -36,7 +36,7 @@ GLApp::GLApp()
 	}
 	glfwSetFramebufferSizeCallback(m_window, framebuffer_size_callback);
 
-	Light();
+	Transform();
 	//Transform();
 
 	glfwTerminate();
@@ -52,8 +52,9 @@ void GLApp::framebuffer_size_callback(GLFWwindow* window, int width, int height)
 	glViewport(0, 0, width, height);
 }
 
-void GLApp::processInput(GLFWwindow *window,GLApp* app)
+bool processInput(GLFWwindow *window,GLApp* app)
 {
+	bool changed = false;
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
 
@@ -61,19 +62,25 @@ void GLApp::processInput(GLFWwindow *window,GLApp* app)
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 	{ 
 		app->m_cameraPos += app->m_cameraFront * camera_speed;
+		changed = true;
 	}
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
 	{
 		app->m_cameraPos -= camera_speed * app->m_cameraFront;
+		changed = true;
 	}
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
 	{
 		app->m_cameraPos -= glm::normalize(glm::cross(app->m_cameraFront, app->m_cameraUp)) * camera_speed;
+		changed = true;
 	}
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 	{
 		app->m_cameraPos += glm::normalize(glm::cross(app->m_cameraFront, app->m_cameraUp)) * camera_speed;
+		changed = true;
 	}
+	//app->m_cameraPos += app->m_cameraFront * 5.0f;
+	return changed;
 }
 
 std::string GLApp::loadFileToStr(std::string file_name)
@@ -440,9 +447,11 @@ void GLApp::Cube()
 
 void GLApp::Transform()
 {
-	glm::vec3 m_cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
-	glm::vec3 m_cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-	glm::vec3 m_cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+	m_cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+	m_cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+	m_cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+	m_deltaTime = 0.0f;
+	m_lastFrame = 0.0f;
 
 	GLfloat cube_verts[] = {
 		-0.5f,0.5f,0.0f,
@@ -546,7 +555,10 @@ void GLApp::Transform()
 		m_deltaTime = currentFrame - m_lastFrame;
 		m_lastFrame = currentFrame;
 
-		processInput(m_window,this);
+		if (processInput(m_window, this))
+		{
+			printf("%f,%f,%f\n", m_cameraPos.x, m_cameraPos.y, this->m_cameraPos.z);
+		}
 
 		// rendering here
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -565,22 +577,22 @@ void GLApp::Transform()
 		//		shader.setMat4("view", view);
 		shader.setMat4("projection", projection);
 		float camera_speed = 2.50f * m_deltaTime;
-		if (glfwGetKey(m_window, GLFW_KEY_W) == GLFW_PRESS)
-		{
-			m_cameraPos += m_cameraFront * camera_speed;
-		}
-		if (glfwGetKey(m_window, GLFW_KEY_S) == GLFW_PRESS)
-		{
-			m_cameraPos -= camera_speed * m_cameraFront;
-		}
-		if (glfwGetKey(m_window, GLFW_KEY_A) == GLFW_PRESS)
-		{
-			m_cameraPos -= glm::normalize(glm::cross(m_cameraFront, m_cameraUp)) * camera_speed;
-		}
-		if (glfwGetKey(m_window, GLFW_KEY_D) == GLFW_PRESS)
-		{
-			m_cameraPos += glm::normalize(glm::cross(m_cameraFront, m_cameraUp)) * camera_speed;
-		}
+		//if (glfwGetKey(m_window, GLFW_KEY_W) == GLFW_PRESS)
+		//{
+		//	m_cameraPos += m_cameraFront * camera_speed;
+		//}
+		//if (glfwGetKey(m_window, GLFW_KEY_S) == GLFW_PRESS)
+		//{
+		//	m_cameraPos -= camera_speed * m_cameraFront;
+		//}
+		//if (glfwGetKey(m_window, GLFW_KEY_A) == GLFW_PRESS)
+		//{
+		//	m_cameraPos -= glm::normalize(glm::cross(m_cameraFront, m_cameraUp)) * camera_speed;
+		//}
+		//if (glfwGetKey(m_window, GLFW_KEY_D) == GLFW_PRESS)
+		//{
+		//	m_cameraPos += glm::normalize(glm::cross(m_cameraFront, m_cameraUp)) * camera_speed;
+		//}
 		glm::mat4 view = glm::lookAt(m_cameraPos, m_cameraPos + m_cameraFront, m_cameraUp);
 		shader.setMat4("view", view);
 		//std::cout << *glm::value_ptr(view) << std::endl;
@@ -621,7 +633,7 @@ void GLApp::setCameraPos(glm::vec3 pos)
 	m_cameraPos = pos;
 }
 
-void GLApp::Light()
+void GLApp::DiffuseLight()
 {
 	glm::vec3 m_cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
 	glm::vec3 m_cameraFront = glm::vec3(-0.50f, -0.50f, -1.0f);
@@ -638,20 +650,64 @@ void GLApp::Light()
 	lampShader.readVert("shaders/light/light.vert");
 	lampShader.compile();
 
-	float cube_vertices[108];
-	getCubeVertices(cube_vertices);
+	float vertices[] = {
+	-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+	 0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+	 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+	 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+	-0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+	-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+
+	-0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+	 0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+	 0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+	 0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+	-0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+	-0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+
+	-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+	-0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+	-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+	-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+	-0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+	-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+
+	 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+	 0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+	 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+	 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+	 0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+	 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+
+	-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+	 0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+	 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+	 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+	-0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+	-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+
+	-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+	 0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+	 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+	 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+	-0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+	-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
+	};
 
 	GLuint cube_vao, cube_vbo;
 	glGenVertexArrays(1, &cube_vao);
 	glGenBuffers(1, &cube_vbo);
 	
 	glBindBuffer(GL_ARRAY_BUFFER, cube_vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(cube_vertices), cube_vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
 	glBindVertexArray(cube_vao);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
+
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
 
 	GLuint light_vao;
 	glGenVertexArrays(1, &light_vao);
@@ -659,23 +715,29 @@ void GLApp::Light()
 
 	glBindBuffer(GL_ARRAY_BUFFER, cube_vbo);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 
 	glm::vec3 cam(m_cameraPos.x + 2.0f, m_cameraPos.y + 2.0f, m_cameraPos.z + 2.0f);
 	m_cameraPos = cam;
 	glm::mat4 view = glm::lookAt(m_cameraPos, m_cameraPos + m_cameraFront, m_cameraUp);
+	glm::vec3 light_pos(1.0f, 1.0f, -1.0f);
 
 	while (!glfwWindowShouldClose(m_window))
 	{
+		float currentFrame = glfwGetTime();
+		m_deltaTime = currentFrame - m_lastFrame;
+		m_lastFrame = currentFrame;
+
 		processInput(m_window, this);
 
 		glClearColor(0.1f, 0.4f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		lightingShader.use();
-		lightingShader.setVec3("objectColor", 0.50f, 0.5f, 0.31f);
-		lightingShader.setVec3("lightColor", 1.0f, 0.0f, 1.0f);
+		lightingShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
+		lightingShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
+		lightingShader.setVec3("lightPos", light_pos);
 
 		glm::mat4 projection = glm::mat4(1.0f);
 		projection = glm::perspective(glm::radians(45.0f), (float)800 / (float)800, 0.1f, 100.0f);
@@ -693,7 +755,7 @@ void GLApp::Light()
 		lampShader.setMat4("projection", projection);
 		lampShader.setMat4("view", view);
 		model = glm::mat4(1.0f);
-		glm::vec3 light_pos(1.0f, 1.0f, -1.0f);
+
 		model = glm::translate(model, light_pos);
 		model = glm::scale(model, glm::vec3(0.2f));
 		lampShader.setMat4("model", model);
@@ -708,5 +770,10 @@ void GLApp::Light()
 	glDeleteVertexArrays(1, &cube_vao);
 	glDeleteVertexArrays(1, &light_vao);
 	glDeleteBuffers(1, &cube_vbo);
+
+}
+
+void GLApp::SpecularLight()
+{
 
 }

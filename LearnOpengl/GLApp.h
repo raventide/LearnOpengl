@@ -14,21 +14,25 @@ public:
 	std::string loadFileToStr(std::string file_name);
 
 	static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-	static void processInput(GLFWwindow *window,GLApp* app);
 
 	void setCameraPos(glm::vec3);
+
+	friend bool processInput(GLFWwindow *window, GLApp* app);
 
 private:
 	void ColorTriangle();
 	void Texture();
 	void Cube();
 	void Transform();
-	void Light();
+	void DiffuseLight();
+	void SpecularLight();
 
 	GLFWwindow* m_window;
-	glm::vec3 m_cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
-	glm::vec3 m_cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-	glm::vec3 m_cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
-	float m_deltaTime = 0.0f;
-	float m_lastFrame = 0.0f;
+	glm::vec3 m_cameraPos;
+	glm::vec3 m_cameraFront;
+	glm::vec3 m_cameraUp;
+	float m_deltaTime;
+	float m_lastFrame;
 };
+
+bool processInput(GLFWwindow *window, GLApp* app);
