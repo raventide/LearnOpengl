@@ -555,10 +555,7 @@ void GLApp::Transform()
 
 	while (!glfwWindowShouldClose(m_window))
 	{
-		float currentFrame = glfwGetTime();
-		m_deltaTime = currentFrame - m_lastFrame;
-		m_lastFrame = currentFrame;
-
+		processInput(m_window, this);
 		// rendering here
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
