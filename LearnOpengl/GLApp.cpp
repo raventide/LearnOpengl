@@ -36,7 +36,13 @@ GLApp::GLApp()
 	}
 	glfwSetFramebufferSizeCallback(m_window, framebuffer_size_callback);
 
-	Transform();
+	m_cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+	m_cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+	m_cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+	m_deltaTime = 0.0f;
+	m_lastFrame = 0.0f;
+
+	DiffuseLight();
 	//Transform();
 
 	glfwTerminate();
@@ -54,6 +60,10 @@ void GLApp::framebuffer_size_callback(GLFWwindow* window, int width, int height)
 
 bool processInput(GLFWwindow *window,GLApp* app)
 {
+	float currentFrame = glfwGetTime();
+	app->m_deltaTime = currentFrame - app->m_lastFrame;
+	app->m_lastFrame = currentFrame;
+
 	bool changed = false;
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
@@ -79,7 +89,6 @@ bool processInput(GLFWwindow *window,GLApp* app)
 		app->m_cameraPos += glm::normalize(glm::cross(app->m_cameraFront, app->m_cameraUp)) * camera_speed;
 		changed = true;
 	}
-	//app->m_cameraPos += app->m_cameraFront * 5.0f;
 	return changed;
 }
 
@@ -447,11 +456,6 @@ void GLApp::Cube()
 
 void GLApp::Transform()
 {
-	m_cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
-	m_cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-	m_cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
-	m_deltaTime = 0.0f;
-	m_lastFrame = 0.0f;
 
 	GLfloat cube_verts[] = {
 		-0.5f,0.5f,0.0f,
@@ -555,11 +559,6 @@ void GLApp::Transform()
 		m_deltaTime = currentFrame - m_lastFrame;
 		m_lastFrame = currentFrame;
 
-		if (processInput(m_window, this))
-		{
-			printf("%f,%f,%f\n", m_cameraPos.x, m_cameraPos.y, this->m_cameraPos.z);
-		}
-
 		// rendering here
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -635,9 +634,9 @@ void GLApp::setCameraPos(glm::vec3 pos)
 
 void GLApp::DiffuseLight()
 {
-	glm::vec3 m_cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
-	glm::vec3 m_cameraFront = glm::vec3(-0.50f, -0.50f, -1.0f);
-	glm::vec3 m_cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+	m_cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+	m_cameraFront = glm::vec3(-0.50f, -0.50f, -1.0f);
+	m_cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
 	glEnable(GL_DEPTH_TEST);
 
@@ -720,15 +719,10 @@ void GLApp::DiffuseLight()
 
 	glm::vec3 cam(m_cameraPos.x + 2.0f, m_cameraPos.y + 2.0f, m_cameraPos.z + 2.0f);
 	m_cameraPos = cam;
-	glm::mat4 view = glm::lookAt(m_cameraPos, m_cameraPos + m_cameraFront, m_cameraUp);
 	glm::vec3 light_pos(1.0f, 1.0f, -1.0f);
 
 	while (!glfwWindowShouldClose(m_window))
 	{
-		float currentFrame = glfwGetTime();
-		m_deltaTime = currentFrame - m_lastFrame;
-		m_lastFrame = currentFrame;
-
 		processInput(m_window, this);
 
 		glClearColor(0.1f, 0.4f, 0.1f, 1.0f);
@@ -743,6 +737,7 @@ void GLApp::DiffuseLight()
 		projection = glm::perspective(glm::radians(45.0f), (float)800 / (float)800, 0.1f, 100.0f);
 		lightingShader.setMat4("projection", projection);
 
+		glm::mat4 view = glm::lookAt(m_cameraPos, m_cameraPos + m_cameraFront, m_cameraUp);
 		lightingShader.setMat4("view", view);
 		glm::mat4 model = glm::mat4(1.0f);
 		//model = glm::rotate(45.0f, glm::vec3(0.0f, 1.0f, 0.0f));
