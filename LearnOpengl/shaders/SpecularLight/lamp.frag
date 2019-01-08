@@ -1,8 +1,7 @@
-#version 430 core
+#version 330 core
 out vec4 FragColor;
 
 void main()
 {
-	vec3 l_color = vec3(1.0,1.0,1.0);
-    FragColor = vec4(l_color,1.0);
+    FragColor = vec4(1.0); // 将向量的四个分量全部设置为1.0
 }

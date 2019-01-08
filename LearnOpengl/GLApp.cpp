@@ -811,7 +811,7 @@ void GLApp::SpecularLight()
 	glBindVertexArray(lamp_vao);
 	glGenBuffers(1, &lamp_vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, lamp_vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(cube_vertices), cube_vertices, GL_STATIC_DRAW);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 	glEnableVertexAttribArray(0);
 
@@ -839,6 +839,31 @@ void GLApp::SpecularLight()
 	{
 		processInput(m_window, this);
 
+		if (glfwGetKey(m_window, GLFW_KEY_UP) == GLFW_PRESS)
+		{
+			light_pos.z -= 0.02f;
+		}
+		if (glfwGetKey(m_window, GLFW_KEY_DOWN) == GLFW_PRESS)
+		{
+			light_pos.z += 0.02f;
+		}
+		if (glfwGetKey(m_window, GLFW_KEY_LEFT) == GLFW_PRESS)
+		{
+			light_pos.x -= 0.02f;
+		}
+		if (glfwGetKey(m_window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+		{
+			light_pos.x += 0.02f;
+		}
+		if (glfwGetKey(m_window, GLFW_KEY_U) == GLFW_PRESS)
+		{
+			light_pos.y += 0.02f;
+		}
+		if (glfwGetKey(m_window, GLFW_KEY_J) == GLFW_PRESS)
+		{
+			light_pos.y -= 0.02f;
+		}
+
 		glClearColor(0.3f, 0.2f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -856,10 +881,9 @@ void GLApp::SpecularLight()
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		lamp_shader.use();
-		//lamp_model = glm::translate(lamp_model, glm::vec3(0.0f,0.50f,0.0f));
-		//lamp_model = glm::scale(lamp_model, glm::vec3(0.9f,1.0f,1.0f));
-		//model = glm::translate(model, light_pos);
-		//model = glm::scale(model, glm::vec3(0.2f));
+		lamp_model = glm::mat4(1.0f);
+		lamp_model = glm::translate(lamp_model, glm::vec3(light_pos));
+		lamp_model = glm::scale(lamp_model, glm::vec3(0.2f));
 		lamp_projection = projection;
 		lamp_view = view;
 		lamp_shader.setMat4("projection", lamp_projection);
@@ -867,7 +891,7 @@ void GLApp::SpecularLight()
 		lamp_shader.setMat4("model", lamp_model);
 
 		glBindVertexArray(lamp_vao);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
 
 		glfwSwapBuffers(m_window);
 		glfwPollEvents();
