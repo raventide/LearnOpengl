@@ -183,6 +183,10 @@
     <None Include="shaders\light\light.vert" />
     <None Include="shaders\light\object.frag" />
     <None Include="shaders\light\object.vert" />
+    <None Include="shaders\SpecularLight\lamp.frag" />
+    <None Include="shaders\SpecularLight\rect.frag" />
+    <None Include="shaders\SpecularLight\rect.vert" />
+    <None Include="shaders\SpecularLight\lamp.vert" />
     <None Include="shaders\vertex.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

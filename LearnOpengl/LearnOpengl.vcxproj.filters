@@ -52,5 +52,9 @@
     <None Include="shaders\light\object.frag" />
     <None Include="shaders\light\light.vert" />
     <None Include="shaders\light\light.frag" />
+    <None Include="shaders\SpecularLight\rect.frag" />
+    <None Include="shaders\SpecularLight\rect.vert" />
+    <None Include="shaders\SpecularLight\lamp.frag" />
+    <None Include="shaders\SpecularLight\lamp.vert" />
   </ItemGroup>
 </Project>

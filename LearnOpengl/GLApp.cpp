@@ -11,8 +11,11 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "CommonData.h"
 
+GLApp *GLApp::curApp = NULL;
+
 GLApp::GLApp()
 {
+	curApp = this;
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -35,6 +38,8 @@ GLApp::GLApp()
 		exit(-1);
 	}
 	glfwSetFramebufferSizeCallback(m_window, framebuffer_size_callback);
+	glfwSetCursorPosCallback(m_window, mouse_callback);
+	glfwSetScrollCallback(m_window, scroll_callback);
 
 	m_cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
 	m_cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
@@ -42,8 +47,16 @@ GLApp::GLApp()
 	m_deltaTime = 0.0f;
 	m_lastFrame = 0.0f;
 
-	DiffuseLight();
+	m_firstMouse = true;
+	m_yaw = -90.0f;
+	m_pitch = 0.0f;
+	m_lastX = 800.0f / 2.0f;
+	m_lastY = 600.0f / 2.0f;
+	m_fov = 45.0f;
+
+	//DiffuseLight();
 	//Transform();
+	SpecularLight();
 
 	glfwTerminate();
 }
@@ -717,6 +730,7 @@ void GLApp::DiffuseLight()
 	glm::vec3 cam(m_cameraPos.x + 2.0f, m_cameraPos.y + 2.0f, m_cameraPos.z + 2.0f);
 	m_cameraPos = cam;
 	glm::vec3 light_pos(1.0f, 1.0f, -1.0f);
+	//glm::vec3 light_pos(0.0f, 0.0f, 1.0f);
 
 	while (!glfwWindowShouldClose(m_window))
 	{
@@ -767,5 +781,153 @@ void GLApp::DiffuseLight()
 
 void GLApp::SpecularLight()
 {
+	GLfloat vertices[] = {
+		-1.0f, 0.0f, 1.0f,
+		-1.0f, 0.0f, -1.0f,
+		1.0f, 0.0f, -1.0f,
+		-1.0f, 0.0f, 1.0f,
+		1.0f, 0.0f, -1.0f,
+		1.0f, 0.0f, 1.0f
+	};
+	GLfloat cube_vertices[108];
+	getCubeVertices(cube_vertices);
+	glm::vec3 light_pos(0.50f, 0.50f, 0.50f);
+	glm::vec3 rect_color(0.2f, 0.6f, 0.1f);
 
+	glEnable(GL_DEPTH_TEST);
+
+	GLuint rect_vao, rect_vbo;
+	GLuint lamp_vao, lamp_vbo;
+
+	glGenVertexArrays(1, &rect_vao);
+	glBindVertexArray(rect_vao);
+	glGenBuffers(1, &rect_vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, rect_vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+	glEnableVertexAttribArray(0);
+
+	glGenVertexArrays(1, &lamp_vao);
+	glBindVertexArray(lamp_vao);
+	glGenBuffers(1, &lamp_vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, lamp_vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+	glEnableVertexAttribArray(0);
+
+	GLShader rect_shader;
+	rect_shader.readVert("shaders/SpecularLight/rect.vert");
+	rect_shader.readFrag("shaders/SpecularLight/rect.frag");
+	rect_shader.compile();
+	GLShader lamp_shader;
+	lamp_shader.readVert("shaders/SpecularLight/lamp.vert");
+	lamp_shader.readFrag("shaders/SpecularLight/lamp.frag");
+	lamp_shader.compile();
+
+	glm::mat4 model(1.0f);
+	glm::mat4 view(1.0f);
+	glm::mat4 projection(1.0f);
+
+	glm::mat4 lamp_model(1.0f);
+	glm::mat4 lamp_view(1.0f);
+	glm::mat4 lamp_projection(1.0f);
+
+	m_cameraPos = glm::vec3(2.0f, 2.0f, 2.0f);
+	m_cameraFront = glm::vec3(-1.0f, -1.0f, -1.0f);
+
+	while (!glfwWindowShouldClose(m_window))
+	{
+		processInput(m_window, this);
+
+		glClearColor(0.3f, 0.2f, 0.1f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		rect_shader.use();
+		rect_shader.setVec3("objectColor", rect_color);
+		rect_shader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
+		rect_shader.setVec3("lightPos", light_pos);
+		projection = glm::perspective(glm::radians(45.0f), (float)800 / (float)800, 0.1f, 100.0f);
+		view = glm::lookAt(m_cameraPos, m_cameraPos + m_cameraFront, m_cameraUp);
+		rect_shader.setMat4("projection", projection);
+		rect_shader.setMat4("view", view);
+		rect_shader.setMat4("model", model);
+
+		glBindVertexArray(rect_vao);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+
+		lamp_shader.use();
+		//lamp_model = glm::translate(lamp_model, glm::vec3(0.0f,0.50f,0.0f));
+		//lamp_model = glm::scale(lamp_model, glm::vec3(0.9f,1.0f,1.0f));
+		//model = glm::translate(model, light_pos);
+		//model = glm::scale(model, glm::vec3(0.2f));
+		lamp_projection = projection;
+		lamp_view = view;
+		lamp_shader.setMat4("projection", lamp_projection);
+		lamp_shader.setMat4("view", lamp_view);
+		lamp_shader.setMat4("model", lamp_model);
+
+		glBindVertexArray(lamp_vao);
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+
+		glfwSwapBuffers(m_window);
+		glfwPollEvents();
+	}
+	glDeleteVertexArrays(1, &rect_vao);
+	glDeleteVertexArrays(1, &lamp_vao);
+	glDeleteBuffers(1, &rect_vbo);
+	glDeleteBuffers(1, &lamp_vbo);
+}
+
+void processMouseInput(GLApp *app, double xpos, double ypos)
+{
+	if (app->m_firstMouse)
+	{
+		app->m_lastX = xpos;
+		app->m_lastY = ypos;
+		app->m_firstMouse = false;
+	}
+
+	float xoffset = xpos - app->m_lastX;
+	float yoffset = app->m_lastY - ypos; // reversed since y-coordinates go from bottom to top
+	app->m_lastX = xpos;
+	app->m_lastY = ypos;
+
+	float sensitivity = 0.1f; // change this value to your liking
+	xoffset *= sensitivity;
+	yoffset *= sensitivity;
+
+	app->m_yaw += xoffset;
+	app->m_pitch += yoffset;
+
+	// make sure that when pitch is out of bounds, screen doesn't get flipped
+	if (app->m_pitch > 89.0f)
+		app->m_pitch = 89.0f;
+	if (app->m_pitch < -89.0f)
+		app->m_pitch = -89.0f;
+
+	glm::vec3 front;
+	front.x = cos(glm::radians(app->m_yaw)) * cos(glm::radians(app->m_pitch));
+	front.y = sin(glm::radians(app->m_pitch));
+	front.z = sin(glm::radians(app->m_yaw)) * cos(glm::radians(app->m_pitch));
+	app->m_cameraFront = glm::normalize(front);
+}
+
+void processScrollInput(GLApp *app, double xoffset, double yoffset)
+{
+	if (app->m_fov >= 1.0f && app->m_fov <= 45.0f)
+		app->m_fov -= yoffset;
+	if (app->m_fov <= 1.0f)
+		app->m_fov = 1.0f;
+	if (app->m_fov >= 45.0f)
+		app->m_fov = 45.0f;
+}
+
+void GLApp::mouse_callback(GLFWwindow* window, double xpos, double ypos)
+{
+	processMouseInput(curApp, xpos, ypos);
+}
+
+void GLApp::scroll_callback(GLFWwindow* window, double xpos, double ypos)
+{
+	processScrollInput(curApp, xpos, ypos);
 }
