@@ -15,6 +15,7 @@ public:
 	void use();
 	GLuint id();
 
+	void setFloat(const std::string& name, const GLfloat&);
 	void setMat4(const std::string& name, glm::mat4 value);
 	void setVec3(const std::string& name, glm::vec3 value);
 	void setVec3(const std::string& name,

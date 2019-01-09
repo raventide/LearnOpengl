@@ -2,11 +2,26 @@
   GLApp.cpp
 d:\jason\code\cpp\learnopengl\learnopengl\glapp.cpp(76): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
 d:\jason\code\cpp\learnopengl\learnopengl\glapp.cpp(84): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
-d:\jason\code\cpp\learnopengl\learnopengl\glapp.cpp(909): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
-d:\jason\code\cpp\learnopengl\learnopengl\glapp.cpp(910): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
-d:\jason\code\cpp\learnopengl\learnopengl\glapp.cpp(914): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
-d:\jason\code\cpp\learnopengl\learnopengl\glapp.cpp(915): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
-d:\jason\code\cpp\learnopengl\learnopengl\glapp.cpp(916): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
-d:\jason\code\cpp\learnopengl\learnopengl\glapp.cpp(917): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
-d:\jason\code\cpp\learnopengl\learnopengl\glapp.cpp(942): warning C4244: “-=”: 从“double”转换到“float”，可能丢失数据
+d:\jason\code\cpp\learnopengl\learnopengl\glapp.cpp(884): warning C4244: “=”: 从“double”转换到“T”，可能丢失数据
+          with
+          [
+              T=float
+          ]
+d:\jason\code\cpp\learnopengl\learnopengl\glapp.cpp(885): warning C4244: “=”: 从“double”转换到“T”，可能丢失数据
+          with
+          [
+              T=float
+          ]
+d:\jason\code\cpp\learnopengl\learnopengl\glapp.cpp(886): warning C4244: “=”: 从“double”转换到“T”，可能丢失数据
+          with
+          [
+              T=float
+          ]
+d:\jason\code\cpp\learnopengl\learnopengl\glapp.cpp(924): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
+d:\jason\code\cpp\learnopengl\learnopengl\glapp.cpp(925): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
+d:\jason\code\cpp\learnopengl\learnopengl\glapp.cpp(929): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
+d:\jason\code\cpp\learnopengl\learnopengl\glapp.cpp(930): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
+d:\jason\code\cpp\learnopengl\learnopengl\glapp.cpp(931): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
+d:\jason\code\cpp\learnopengl\learnopengl\glapp.cpp(932): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
+d:\jason\code\cpp\learnopengl\learnopengl\glapp.cpp(957): warning C4244: “-=”: 从“double”转换到“float”，可能丢失数据
   LearnOpengl.vcxproj -> D:\jason\code\cpp\LearnOpengl\bin\debug\LearnOpengl.exe

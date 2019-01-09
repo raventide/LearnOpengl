@@ -123,3 +123,9 @@ void GLShader::setVec3(const std::string& name,
  	unsigned int transformLoc = glGetUniformLocation(this->id(), name.c_str());
 	glUniform3f(transformLoc, x, y, z);
 }
+
+void GLShader::setFloat(const std::string& name,const GLfloat& value)
+{
+	unsigned int transformLoc = glGetUniformLocation(this->id(), name.c_str());
+	glUniform1f(transformLoc,value);
+}
