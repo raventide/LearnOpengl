@@ -10,11 +10,14 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include "CommonData.h"
+#include "GLModel.h"
 
 GLApp *GLApp::curApp = NULL;
 
 GLApp::GLApp()
 {
+	m_width = 800;
+	m_height = 800;
 	curApp = this;
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -50,13 +53,14 @@ GLApp::GLApp()
 	m_firstMouse = true;
 	m_yaw = -90.0f;
 	m_pitch = 0.0f;
-	m_lastX = 800.0f / 2.0f;
-	m_lastY = 600.0f / 2.0f;
+	m_lastX = m_width / 2.0f;
+	m_lastY = m_height / 2.0f;
 	m_fov = 45.0f;
 
+	LoadModel();
 	//DiffuseLight();
 	//Transform();
-	SpecularLight();
+	//SpecularLight();
 
 	glfwTerminate();
 }
@@ -68,6 +72,8 @@ GLApp::~GLApp()
 
 void GLApp::framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
+	GLApp::curApp->m_width = width;
+	GLApp::curApp->m_height = height;
 	glViewport(0, 0, width, height);
 }
 
@@ -949,6 +955,16 @@ void processMouseInput(GLApp *app, double xpos, double ypos)
 	front.y = sin(glm::radians(app->m_pitch));
 	front.z = sin(glm::radians(app->m_yaw)) * cos(glm::radians(app->m_pitch));
 	app->m_cameraFront = glm::normalize(front);
+	if (xpos >= app->m_width - 10)
+	{
+		app->m_firstMouse = true;
+		glfwSetCursorPos(app->m_window, 10, ypos);
+	}
+	else if (xpos <= 10)
+	{
+		app->m_firstMouse = true;
+		glfwSetCursorPos(app->m_window, app->m_width - 10, ypos);
+	}
 }
 
 void processScrollInput(GLApp *app, double xoffset, double yoffset)
@@ -969,4 +985,47 @@ void GLApp::mouse_callback(GLFWwindow* window, double xpos, double ypos)
 void GLApp::scroll_callback(GLFWwindow* window, double xpos, double ypos)
 {
 	processScrollInput(curApp, xpos, ypos);
+}
+
+void GLApp::LoadModel()
+{
+	glEnable(GL_DEPTH_TEST);
+	GLShader shader;
+	shader.readVert("shaders/model/model.vert");
+	shader.readFrag("shaders/model/model.frag");
+	shader.compile();
+
+	GLModel my_model("res/nanosuit/nanosuit.obj");
+
+	while (!glfwWindowShouldClose(m_window))
+	{
+		// input
+		// -----
+		processInput(m_window,this);
+
+		// render
+		// ------
+		glClearColor(0.1f, 0.3f, 0.6f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		// don't forget to enable shader before setting uniforms
+		shader.use();
+
+		glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)m_width / (float)m_height, 0.1f, 100.0f);
+		glm::mat4 view = glm::lookAt(m_cameraPos, m_cameraPos + m_cameraFront, m_cameraUp);
+		shader.setMat4("projection", projection);
+		shader.setMat4("view", view);
+
+		// render the loaded model
+		glm::mat4 model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(0.0f, -1.75f, 0.0f));
+		model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));
+		shader.setMat4("model", model);
+		my_model.Draw(shader);
+
+		// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
+		// -------------------------------------------------------------------------------
+		glfwSwapBuffers(m_window);
+		glfwPollEvents();
+	}
 }

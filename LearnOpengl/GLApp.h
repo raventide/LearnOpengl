@@ -31,6 +31,7 @@ private:
 	void Transform();
 	void DiffuseLight();
 	void SpecularLight();
+	void LoadModel();
 
 	GLFWwindow* m_window;
 	glm::vec3 m_cameraPos;
@@ -45,6 +46,8 @@ private:
 	float m_lastX;
 	float m_lastY;
 	float m_fov;
+	int m_width;
+	int m_height;
 };
 
 bool processInput(GLFWwindow *window, GLApp* app);

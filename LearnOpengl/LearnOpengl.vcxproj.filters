@@ -27,6 +27,12 @@
     <ClInclude Include="CommonData.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="GLMesh.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="GLModel.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -56,5 +62,7 @@
     <None Include="shaders\SpecularLight\rect.vert" />
     <None Include="shaders\SpecularLight\lamp.frag" />
     <None Include="shaders\SpecularLight\lamp.vert" />
+    <None Include="shaders\model\model.vert" />
+    <None Include="shaders\model\model.frag" />
   </ItemGroup>
 </Project>
